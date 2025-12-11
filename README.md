@@ -72,9 +72,11 @@ You must have a **Gemini API Key** to run the `EvaluationAgent`.
 
 The package exposes a console script named `run-support` defined in `setup.py`.
 
-### Run the Workflow Demo
+### Running a Client Inquiry
 
-Execute the full workflow demo, which runs two predefined scenarios: a quota request (approved) and a sensitive access request (denied).
+Execute the workflow by providing the client's request details as a command-line argument.
+
+**Syntax:**
 
 ```bash
-run-support
+run-support "The specific client request or query." --name "Client Name" --email "client@email.com"
