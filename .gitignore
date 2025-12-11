@@ -1,0 +1,16 @@
+# Python compilation files
+__pycache__/
+*.pyc
+*.pyd
+
+# Virtual environment files
+venv/
+.venv/
+
+# Environment variables (contains API keys)
+.env
+
+# Distribution/packaging artifacts
+dist/
+build/
+*.egg-info/
