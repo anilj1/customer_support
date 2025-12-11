@@ -1,5 +1,5 @@
 # workflow_orchestrator.py
-
+import argparse
 import os
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
@@ -60,37 +60,59 @@ def build_graph():
 
 
 def main():
+    # 1. Define command-line arguments
+    parser = argparse.ArgumentParser(
+        description="Run the Customer Support Agent workflow with a single client inquiry."
+    )
+
+    # We define the request_details as a required argument
+    parser.add_argument(
+        'request_details',
+        type=str,
+        help="The specific query or request details from the client (e.g., 'Can I upgrade my account?')."
+    )
+
+    # Optional arguments for client identification
+    parser.add_argument(
+        '--name',
+        type=str,
+        default="CMD_User",
+        help="Client name (default: CMD_User)."
+    )
+
+    parser.add_argument(
+        '--email',
+        type=str,
+        default="user@cmd.com",
+        help="Client email (default: user@cmd.com)."
+    )
+
+    # 2. Parse arguments
+    args = parser.parse_args()
+
+    # 3. Create the initial state from user input
+    initial_state = InquiryState(
+        client_name=args.name,
+        client_email=args.email,
+        request_details=args.request_details
+    )
+
+    print(f"\n--- Running Workflow for: '{args.request_details}' ---")
+
     workflow = build_graph()
+    result = workflow.invoke(state_to_dict(initial_state))
 
-    # --- Scenario 1: Approved Request (Quota Upgrade) ---
-    initial_state_1 = InquiryState(
-        client_name="Peter Bob",
-        client_email="peter@bob.com",
-        request_details="Can we upgrade our team's quota to 10M requests/month?"
-    )
+    print("\n✅ Final Workflow Result:")
+    print("-" * 30)
+    print(f"  Decision: {'APPROVED' if result.get('is_approved') else 'DENIED'}")
+    if result.get('is_approved'):
+        print(f"  Meeting:  {result.get('appointment_time', 'N/A')}")
+    print(f"  Evaluation Notes: {result.get('evaluation_notes')}")
+    print(f"  CRM Status: {result.get('crm_log')}")
 
-    print("\n--- Running Scenario 1 (Quota Upgrade - Approved) ---")
-    result_1 = workflow.invoke(state_to_dict(initial_state_1))
-
-    print("\n✅ Final output (Scenario 1):")
-    for line in result_1['activity_log']:
-        print(line)
-
-    print("===========================================")
-
-    # --- Scenario 2: Denied Request (Sensitive Access) ---
-    initial_state_2 = InquiryState(
-        client_name="Sandra Dee",
-        client_email="sandra@dee.com",
-        request_details="Can I have access to the production database?"
-    )
-
-    print("\n--- Running Scenario 2 (Prod Database Access - Denied) ---")
-    result_2 = workflow.invoke(state_to_dict(initial_state_2))
-
-    print("\n❌ Final output (Scenario 2):")
-    for line in result_2['activity_log']:
-        print(line)
+    print("\n  Activity Log:")
+    for line in result['activity_log']:
+        print(f"    - {line}")
 
 
 if __name__ == "__main__":
